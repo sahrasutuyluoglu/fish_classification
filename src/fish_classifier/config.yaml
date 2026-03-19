@@ -1,0 +1,7 @@
+data:
+  train_dir: data/Fish_Dataset
+  image_size: [224,224]
+  batch_size: 32
+
+model:
+  epochs: 10
