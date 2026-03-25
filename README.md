@@ -1,105 +1,128 @@
-# 🐟 Fish Classification
+# Fish Classification 🐟
 
-## Proje Hakkında
-Bu proje, farklı balık türlerini sınıflandırmak için geliştirilmiş bir **derin öğrenme tabanlı görüntü sınıflandırma** uygulamasıdır.  
-Kullanıcıların kendi balık görüntülerini sınıflandırabilmesi ve modeli eğitebilmesi için bir pipeline sunar.
+Derin öğrenme tabanlı balık türü sınıflandırma projesi. EfficientNetB0 transfer learning mimarisi kullanılarak 9 farklı balık türü sınıflandırılmaktadır.
 
-- Veri yükleme (`ImageDataGenerator`)
-- Basit CNN modeli
-- Model eğitimi ve kaydetme
-- Hiperparametre yönetimi (`config.yaml`)
+## Teknik Özellikler
 
-```text
-fish_classification/
-|-- data/
-|   `-- Fish_Dataset/
-|       |-- Black Sea Sprat/
-|       |-- Gilt-Head Bream/
-|       |-- Hourse Mackerel/
-|       |-- Red Mullet/
-|       |-- Red Sea Bream/
-|       |-- Sea Bass/
-|       |-- Shrimp/
-|       |-- Striped Red Mullet/
-|       `-- Trout/
-|-- models/
-|   |-- figures/
-|   `-- logs/
-|-- outputs/
-|-- scripts/
-|   |-- evaluate.py
-|   `-- train.py
-|-- src/
-|   `-- fish_classifier/
-|       |-- __init__.py
-|       |-- config.yaml
-|       |-- data_loader.py
-|       |-- evaluate.py
-|       |-- model.py
-|       |-- preprocessing.py
-|       |-- train.py
-|       `-- utils.py
-|-- .gitignore
-|-- README.md
-|-- main.py
-`-- requirements.txt
+- **Model:** EfficientNetB0 (ImageNet ağırlıkları ile transfer learning)
+- **Veri artırma:** RandomFlip, RandomRotation, RandomZoom, RandomBrightness
+- **Pipeline:** `tf.data` API ile önbellekleme ve prefetch
+- **Callback:** EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+- **Metrikler:** Accuracy, Precision, Recall, F1-score, Confusion Matrix
+
+## Sınıflar
+
+| # | Balık Türü |
+|---|-----------|
+| 1 | Black Sea Sprat |
+| 2 | Gilt-Head Bream |
+| 3 | Hourse Mackerel |
+| 4 | Red Mullet |
+| 5 | Red Sea Bream |
+| 6 | Sea Bass |
+| 7 | Shrimp |
+| 8 | Striped Red Mullet |
+| 9 | Trout |
+
+## Proje Yapısı
+
 ```
-## Veri Seti
-
-- Projede kullanılan veri seti: `data/Fish_Dataset`  
-- İçerik: 9 farklı balık türü (örn. Salmon, Trout, Tuna, Cod, vs.)  
-- Her sınıf için ayrı klasörler:  
-
-> ⚠️ Dataset repoda değil, ancak `data` klasöründe bir **README içinde dataset linki** bulunmaktadır. Kullanıcılar oradaki talimatları izleyerek veri setini indirebilir.
+fish_classification/
+├── data/
+│   └── Fish_Dataset/
+│       ├── Black Sea Sprat/
+│       ├── Gilt-Head Bream/
+│       └── ...
+├── models/
+│   ├── figures/          # Eğitim grafikleri ve confusion matrix
+│   └── logs/
+├── scripts/
+│   ├── train.py          # Eğitim scripti
+│   └── evaluate.py       # Değerlendirme scripti
+├── src/
+│   └── fish_classifier/
+│       ├── config.yaml   # Tüm hiperparametreler
+│       ├── data_loader.py
+│       ├── evaluate.py
+│       ├── model.py
+│       ├── preprocessing.py
+│       ├── train.py
+│       └── utils.py
+├── main.py
+└── requirements.txt
+```
 
 ## Kurulum
+
 ```bash
 # Repo klonla
 git clone https://github.com/sahrasutuyluoglu/fish_classification.git
 cd fish_classification
 
-# Sanal ortam oluştur (opsiyonel)
+# Python 3.11 ile sanal ortam oluştur
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate        # Linux/Mac
+venv\Scripts\activate           # Windows
 
-# Gerekli paketleri yükle
+# Bağımlılıkları yükle
 pip install -r requirements.txt
 ```
-## Model Eğitimi
-````
-python src/fish_classifier/train.py --config config.yaml
 
-````
+## Veri Seti
 
-- Eğitim tamamlandığında model models/fish_model.h5 olarak kaydedilir.
+Kaggle'daki [A Large Scale Fish Dataset](https://www.kaggle.com/datasets/crowww/a-large-scale-fish-dataset) kullanılmaktadır.
 
-- Eğitim süresini ve batch boyutunu config.yaml üzerinden ayarlayabilirsiniz.
+İndirdikten sonra `data/Fish_Dataset/` klasörüne koy. Her sınıf ayrı bir klasörde olmalıdır.
 
-## Tahmin
-``
-python src/fish_classifier/predict.py --image_path path/to/image.jpg
-``
-Çıktı: tahmin edilen balık türü
+> ⚠️ Veri seti repo'ya dahil edilmemiştir. `data/README.txt` dosyasındaki talimatları izleyerek indirebilirsiniz.
 
-Örnek çıktı:
+## Kullanım
 
-Image: salmon_01.jpg
-Predicted Class: Salmon
-Confidence: 92.4%
-## Değerlendirme
+**Eğitim:**
+```bash
+python scripts/train.py
+# veya özel config ile
+python scripts/train.py --config src/fish_classifier/config.yaml
+```
 
-- Modelin başarımı accuracy ile ölçülür.
+**Değerlendirme:**
+```bash
+python scripts/evaluate.py
+```
 
-- İleri seviye kullanım için confusion matrix ve classification report eklenebilir.
+**Ana giriş noktası:**
+```bash
+python main.py --mode train
+python main.py --mode evaluate
+```
 
-Örnek Confusion Matrix:
+## Konfigürasyon
 
-## İyileştirme Önerileri
+Tüm hiperparametreler `src/fish_classifier/config.yaml` üzerinden yönetilmektedir:
 
-Transfer learning (ResNet, EfficientNet) kullanarak performans artırma
+```yaml
+model:
+  architecture: efficientnetb0   # efficientnetb0 | baseline_cnn
+  epochs: 20
+  learning_rate: 0.001
+  fine_tune: false               # true: base model üst katmanları da eğitilir
+```
 
-Veri augmentasyonu (flip, rotate, zoom, brightness)
+## Sonuçlar
 
-Early stopping ve learning rate scheduler ekleme
+> Eğitim tamamlandıktan sonra buraya eklenecek.
 
-Daha detaylı değerlendirme metrikleri (precision, recall, F1-score)
+| Metrik | Değer |
+|--------|-------|
+| Validation Accuracy | - |
+| Validation Loss | - |
+
+Confusion matrix ve eğitim grafikleri `models/figures/` klasöründe saklanmaktadır.
+
+## Gereksinimler
+
+- Python 3.11
+- TensorFlow 2.21.0
+- scikit-learn 1.8.0
+
+Tüm bağımlılıklar için `requirements.txt` dosyasına bakınız.
